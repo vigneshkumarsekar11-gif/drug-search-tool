@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pharma Product Search</title>
+  <link rel="stylesheet" href="/static/style.css?v=4" />
+</head>
+<body>
+  <div class="app-wrapper">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="header-title">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+          </svg>
+          <h1>Pharma Product Search</h1>
+        </div>
+        <div class="header-actions">
+          <span id="stats-badge" class="stats-badge">Connecting…</span>
+          <button class="btn btn-outline btn-sm" id="reload-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            Reload Data
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="app-main">
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="single">Single Search</button>
+        <button class="tab-btn" data-tab="batch">Batch Upload</button>
+      </div>
+
+      <!-- Single search -->
+      <div class="tab-panel active" id="tab-single">
+        <div class="search-card">
+          <p class="search-hint">Search by generic name, molecule, or composition</p>
+          <div class="search-row">
+            <div class="autocomplete-wrapper">
+              <input type="text" id="single-input" class="search-input"
+                placeholder="e.g. Amoxicillin, Amlodipine 5mg, Paracetamol + Ibuprofen…"
+                autocomplete="off" spellcheck="false" />
+              <ul class="autocomplete-list" id="autocomplete-list" hidden></ul>
+            </div>
+            <button class="btn btn-primary" id="single-search-btn">
+              <span id="btn-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </span>
+              <span id="btn-text">Search</span>
+            </button>
+          </div>
+          <!-- Inline status — never blocks the page -->
+          <div id="search-status" class="search-status" hidden></div>
+        </div>
+      </div>
+
+      <!-- Batch upload -->
+      <div class="tab-panel" id="tab-batch">
+        <div class="search-card">
+          <p class="search-hint">Upload a file with one drug name per line (CSV / XLSX / TXT)</p>
+          <div class="dropzone" id="dropzone" role="button" tabindex="0">
+            <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="dropzone-text">Drag &amp; drop your file here</p>
+            <p class="dropzone-subtext">or</p>
+            <label class="btn btn-outline btn-sm" for="file-input" style="cursor:pointer">Browse File</label>
+            <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" hidden />
+            <p class="dropzone-filename" id="dropzone-filename"></p>
+          </div>
+          <div class="batch-footer">
+            <button class="btn btn-primary" id="batch-search-btn" disabled>
+              <span id="batch-btn-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </span>
+              <span id="batch-btn-text">Search Batch</span>
+            </button>
+          </div>
+          <div id="batch-status" class="search-status" hidden></div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <section class="results-section" id="results-section" hidden>
+        <div class="results-header">
+          <h2 class="results-title" id="results-title">Results</h2>
+          <button class="btn btn-success btn-sm" id="download-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Excel
+          </button>
+        </div>
+        <div class="filter-row">
+          <input type="text" id="results-filter" placeholder="Filter results…" class="filter-input" />
+          <select id="match-filter" class="filter-select">
+            <option value="">All match types</option>
+            <option value="exact">Exact</option>
+            <option value="partial">Partial</option>
+            <option value="fuzzy">Fuzzy</option>
+            <option value="no match">No match</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table class="results-table" id="results-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Input Query</th><th>Product Name</th>
+                <th>Molecules</th><th>Strength</th><th>Form</th>
+                <th>Match Type</th><th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+        <p class="no-results" id="no-results-msg" hidden>
+          No matching products found. Try a different query or check spelling.
+        </p>
+      </section>
+
+    </main>
+
+    <!-- Toast — small non-blocking notification -->
+    <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
+
+  </div>
+
+  <script src="/static/script.js?v=4"></script>
+</body>
+</html>
