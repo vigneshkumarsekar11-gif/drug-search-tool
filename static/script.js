@@ -1,4 +1,4 @@
-/* script.js v4 — no full-page spinner; inline button loading only */
+/* script.js v5 — no full-page spinner; client-side Excel export via SheetJS */
 'use strict';
 
 /* ── DOM refs ─────────────────────────────────────────────── */
@@ -283,8 +283,26 @@ function applyFilters() {
 resultsFilter.addEventListener('input',  applyFilters);
 matchFilter.addEventListener('change', applyFilters);
 
-/* ── Download ─────────────────────────────────────────────── */
-downloadBtn.addEventListener('click', () => { window.location.href = '/download'; });
+/* ── Download (client-side via SheetJS — works on Vercel) ─── */
+downloadBtn.addEventListener('click', () => {
+  if (!allResults.length) { showToast('No results to download yet.', ''); return; }
+  const rows = allResults.map(r => ({
+    'Input Query':        r.query,
+    'Product Name':       r.brand,
+    'Molecules':          r.molecules,
+    'Strength':           r.strength,
+    'Dosage Form':        r.dosage_form,
+    'Match Type':         r.match_type,
+    'Confidence Score':   r.score,
+    'Source':             r.sheet,
+  }));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  // Auto column widths
+  ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length, 16) }));
+  XLSX.utils.book_append_sheet(wb, ws, 'Search Results');
+  XLSX.writeFile(wb, 'pharma_search_results.xlsx');
+});
 
 /* ── Reload data ──────────────────────────────────────────── */
 reloadBtn.addEventListener('click', async () => {

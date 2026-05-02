@@ -1,0 +1,5 @@
+# Local development — includes PDF + Excel parsers
+-r requirements.txt
+pdfplumber>=0.11.0
+pandas>=2.0.0
+xlrd>=2.0.1
